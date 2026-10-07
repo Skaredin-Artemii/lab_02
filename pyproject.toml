@@ -1,0 +1,49 @@
+#Система сборки
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+#Метаданные проекта
+
+[project]
+name = "streamstats"
+version = "0.1.0"
+description = "Потоковый анализатор файлов (CSV и JSONL)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+#Необязательные зависимости
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff"
+]
+
+#Настройка бэкенда сборки
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+#Настройка PYTEST
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "--tb=short -v"
+
+#Настройка RUFF
+
+[tool.ruff]
+line-lenght = 100
+target-version = "py310"
+exclide = [
+    ".venv",
+    "__pycache__",
+    ".pytest_cache",
+]
+
+[tool.ruff.init]
+select = ["E", "F", "I", "UP"]

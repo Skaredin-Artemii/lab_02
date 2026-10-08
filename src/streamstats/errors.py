@@ -4,22 +4,19 @@
 class StreamStatsError(Exception):
     """Базовая ошибка пакета"""
 
-class CliConfigError(StreamStatsError):
-    """Ошибка в аргументах командной строки"""
 
+class CliConfigError(StreamStatsError):
     def __init__(self, message: str) -> None:
         super().__init__(f"Ошибка конфигурации CLI: {message}")
 
-class UnsupportedFormatError(StreamStatsError):
-    """Формат файла не поддерживается"""
 
+class UnsupportedFormatError(StreamStatsError):
     def __init__(self, fmt: str) -> None:
         self.fmt = fmt
         super().__init__(f"Формат '{fmt}' не поддерживается")
 
-class InvalidEventError(StreamStatsError):
-    """Событие не прошло валидацию"""
 
+class InvalidEventError(StreamStatsError):
     def __init__(
             self,
             message: str,
@@ -34,8 +31,6 @@ class InvalidEventError(StreamStatsError):
         super().__init__(self._with_context(message))
 
     def _with_context(self, message: str) -> str:
-        """Добавляет к сообщению файл, строчку и поле, если они есть"""
-
         parts = []
         if self.file:
             parts.append(f"файл: {self.file}")
@@ -47,9 +42,8 @@ class InvalidEventError(StreamStatsError):
             return f"{message} ({', '.join(parts)})"
         return message
 
-class InvalidTimestampError(InvalidEventError):
-    """Неверная временная метка"""
 
+class InvalidTimestampError(InvalidEventError):
     def __init__(
             self,
             message: str,
@@ -58,8 +52,3 @@ class InvalidTimestampError(InvalidEventError):
             line: str | None = None,
     ) -> None:
         super().__init__(message, file=file, line=line, field="timestamp")
-        
-
-
-
-

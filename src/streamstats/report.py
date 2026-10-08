@@ -4,13 +4,9 @@ import json
 
 
 def build_report(acc):
-    """Собираем отчет"""
-
     level_counts = {}
     for level in acc.level_counts:
         level_counts[level.value] = acc.level_counts[level]
-
-    """Топ источников ошибок"""
 
     top = []
     for src, count in acc.get_top_error_sources(5):
@@ -28,9 +24,5 @@ def build_report(acc):
 
 
 def write_json_report(report, output_path):
-    """Записывает словарь в JSON-файл"""
-
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
-
-

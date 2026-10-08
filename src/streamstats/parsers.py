@@ -9,49 +9,52 @@ from .models import create_event
 
 logger = getLogger(__name__)
 
-def parse_csv(file_path, skip_invalid=False):
-    """Считываем файл csv"""
 
-    with open(file_path, "r", encoding="utf-8", newline="") as f:
+def parse_csv(file_path, skip_invalid=False, on_skip=None):
+    with open(file_path, encoding="utf-8-sig", newline="") as f:
         reader = DictReader(f)
         for row in reader:
             try:
-                event = create_event(row, file=file_path, line=reader.line_num)
-                yield event
-            except InvalidEventError:
-                if skip_invalid:
-                    logger.warning(f"Пропущена строка {reader.line_num}")
-                    continue
-                else:
+                yield create_event(row, file=file_path, line=reader.line_num)
+            except InvalidEventError as e:
+                if not skip_invalid:
                     raise
+                logger.warning(f"Строка {reader.line_num}: {e}")
+                if on_skip:
+                    on_skip()
 
-def parse_jsonl(file_path, skip_invalid=False):
-    """Считываем файл jsonl"""
-    with open(file_path, "r", encoding="utf-8") as f:
-        line_num = 0
-        for line in f:
-            line_num += 1
-            if line.strip() == "":
+
+def parse_jsonl(file_path, skip_invalid=False, on_skip=None):
+    with open(file_path, encoding="utf-8-sig") as f:
+        for line_num, line in enumerate(f, start=1):
+            if not line.strip():
                 continue
             try:
                 data = loads(line)
-                event = create_event(data, file=file_path, line=line_num)
-                yield event
+                yield create_event(data, file=file_path, line=line_num)
             except JSONDecodeError:
-                if skip_invalid:
-                    logger.warning(f"Строка {line_num}: плохой JSON")
-                    continue
-                else:
-                    raise InvalidEventError("Невалидный JSON", file=file_path, line=line_num)
+                if not skip_invalid:
+                    raise InvalidEventError(
+                        "Невалидный JSON", file=file_path, line=line_num
+                    )
+                logger.warning(f"Строка {line_num}: плохой JSON")
+                if on_skip:
+                    on_skip()
+            except InvalidEventError as e:
+                if not skip_invalid:
+                    raise
+                logger.warning(f"Строка {line_num}: {e}")
+                if on_skip:
+                    on_skip()
 
-def stream_events(file_paths, format_type, skip_invalid=False):
+
+def stream_events(file_paths, format_type, skip_invalid=False, on_skip=None):
     if format_type == "csv":
         parser = parse_csv
     elif format_type == "jsonl":
         parser = parse_jsonl
     else:
         raise UnsupportedFormatError(format_type)
+
     for path in file_paths:
-        for event in parser(path, skip_invalid):
-            yield event
-    
+        yield from parser(path, skip_invalid, on_skip)

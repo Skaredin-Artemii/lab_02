@@ -4,17 +4,16 @@ import argparse
 import logging
 import sys
 
-from.analysis import StatsAccumulator
+from .analysis import StatsAccumulator
 from .errors import StreamStatsError
 from .parsers import stream_events
 from .report import build_report, write_json_report
 
-def main():
-    """Разбираем аргументы, обрабатывает файлы, пишет отчёт"""
 
+def main():
     parser = argparse.ArgumentParser(
-        prog = "streastats",
-        description = "Потоковый анализатор файлов (CSV и JSONL)",
+        prog="streamstats",
+        description="Потоковый анализатор файлов (CSV и JSONL)",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -26,19 +25,14 @@ def main():
 
     args = parser.parse_args()
 
-    """Настройка логирования"""
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(levelname)s: %(message)s"
-    )
-
-    """Запуск обработки"""
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     try:
-        acc= StatsAccumulator()
+        acc = StatsAccumulator()
 
-        for event in stream_events(args.inputs, args.format, args.skip_invalid):
+        for event in stream_events(
+            args.inputs, args.format, args.skip_invalid, acc.mark_skipped
+        ):
             acc.update(event)
 
         report = build_report(acc)
@@ -49,5 +43,6 @@ def main():
         logging.error("Ошибка: %s", e)
         return 2
 
-if __name__=="__main__":
-    sys.exit(main())   
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -8,22 +8,20 @@ from .errors import InvalidEventError, InvalidTimestampError
 
 
 class Level(str, Enum):
-    """Уровни события"""
-
     DEBUG = "DEBUG"
     INFO = "INFO"
     WARNING = "WARNING"
     ERROR = "ERROR"
     CRITICAL = "CRITICAL"
 
+
 @dataclass
 class Event:
-    """Одно событие из лога"""
-
     timestamp: datetime
     level: Level
     source: str
     message: str
+
 
 def create_event(raw: dict, file=None, line=None) -> Event:
     """Проверяет словарь и возвращает Event или ошибку"""
@@ -38,12 +36,11 @@ def create_event(raw: dict, file=None, line=None) -> Event:
     if not isinstance(ts, str) or not ts.strip():
         raise InvalidTimestampError(
             "Timestamp должен быть непустой строкой", file=file, line=line
-        )    
+        )
     try:
-        ts_clean = ts.strip().replace("Z", "+00:00")
-        parsed_ts = datetime.fromisoformat(ts_clean)
+        parsed_ts = datetime.fromisoformat(ts.strip().replace("Z", "+00:00"))
     except ValueError:
-        raise InvalidEventError(
+        raise InvalidTimestampError(
             "Неверный формат даты", file=file, line=line
         )
     if parsed_ts.tzinfo is None:
@@ -51,7 +48,7 @@ def create_event(raw: dict, file=None, line=None) -> Event:
 
     lvl = raw["level"]
     try:
-        parsed_level =Level(lvl)
+        parsed_level = Level(lvl)
     except (ValueError, TypeError):
         raise InvalidEventError(
             "Недопустимый level", file=file, line=line, field="level"
@@ -60,17 +57,14 @@ def create_event(raw: dict, file=None, line=None) -> Event:
     src = raw["source"]
     if not isinstance(src, str) or not src.strip():
         raise InvalidEventError(
-            "Source должен быть непустой строкой", file=file, line=line, field="source"
-        )    
+            "Source должен быть непустой строкой",
+            file=file, line=line, field="source",
+        )
 
-    msg =raw["message"]
-    if not isinstance(msg,str):
+    msg = raw["message"]
+    if not isinstance(msg, str):
         raise InvalidEventError(
             "Message должен быть строкой", file=file, line=line, field="message"
         )
 
     return Event(parsed_ts, parsed_level, src.strip(), msg)
-    
-
-
-

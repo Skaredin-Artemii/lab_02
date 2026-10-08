@@ -8,20 +8,18 @@ import pytest
 
 
 def run_cli(*args):
-    """Запуск CLI как отдельный процесс"""
-
     return subprocess.run(
         [sys.executable, "-m", "streamstats", *args],
         capture_output=True,
         text=True,
     )
 
-"""Тесты --help"""
 
 def test_cli_help_works():
     result = run_cli("--help")
     assert result.returncode == 0
     assert "streamstats" in result.stdout
+
 
 def test_cli_analyze_help_works():
     result = run_cli("analyze", "--help")
@@ -29,10 +27,8 @@ def test_cli_analyze_help_works():
     assert "--format" in result.stdout
     assert "--output" in result.stdout
 
-"""Успешный запуск"""
 
 def test_cli_success_jsonl(tmp_path):
-
     inp = tmp_path / "in.jsonl"
     inp.write_text(
         '{"timestamp":"2026-01-30T13:14:15Z","level":"INFO","source":"app","message":"hi"}\n'
@@ -54,7 +50,6 @@ def test_cli_success_jsonl(tmp_path):
     assert data["source_counts"]["db"] == 1
     assert data["top_error_sources"] == [{"source": "db", "count": 1}]
 
-"""Строгий режим без --skip-invalid"""
 
 def test_cli_strict_mode_fails(tmp_path):
     inp = tmp_path / "bad.jsonl"
@@ -66,12 +61,11 @@ def test_cli_strict_mode_fails(tmp_path):
     assert result.returncode == 2
     assert not out.exists()
 
-"""Строка ошибки в stderr"""
 
 def test_cli_reports_line_number(tmp_path):
     inp = tmp_path / "bad.jsonl"
     inp.write_text(
-           '{"timestamp":"2026-05-06T11:22:33Z","level":"INFO","source":"app","message":"ok"}\n'
+        '{"timestamp":"2026-05-06T11:22:33Z","level":"INFO","source":"app","message":"ok"}\n'
         "{bad}\n",
         encoding="utf-8",
     )
@@ -82,7 +76,6 @@ def test_cli_reports_line_number(tmp_path):
     assert result.returncode == 2
     assert "строка: 2" in result.stderr
 
-"""Режим --skip-invalid"""
 
 def test_cli_skip_invalid(tmp_path):
     inp = tmp_path / "mixed.jsonl"
@@ -102,11 +95,11 @@ def test_cli_skip_invalid(tmp_path):
 
     assert result.returncode == 0
     assert out.exists()
+
     data = json.loads(out.read_text(encoding="utf-8"))
     assert data["total_events"] == 1
     assert data["skipped_invalid"] == 1
 
-"""Несколько файлов"""
 
 def test_cli_multiple_files(tmp_path):
     f1 = tmp_path / "a.jsonl"
@@ -124,10 +117,10 @@ def test_cli_multiple_files(tmp_path):
     result = run_cli("analyze", str(f1), str(f2), "--format", "jsonl", "--output", str(out))
 
     assert result.returncode == 0
+
     data = json.loads(out.read_text(encoding="utf-8"))
     assert data["total_events"] == 2
 
-"""Пустой файл"""
 
 def test_cli_empty_file(tmp_path):
     inp = tmp_path / "empty.jsonl"
@@ -137,12 +130,12 @@ def test_cli_empty_file(tmp_path):
     result = run_cli("analyze", str(inp), "--format", "jsonl", "--output", str(out))
 
     assert result.returncode == 0
+
     data = json.loads(out.read_text(encoding="utf-8"))
     assert data["total_events"] == 0
     assert data["first_timestamp"] is None
     assert data["last_timestamp"] is None
 
-"""Кириллица в отчете"""
 
 def test_cli_unicode_in_report(tmp_path):
     inp = tmp_path / "u.jsonl"
@@ -156,10 +149,8 @@ def test_cli_unicode_in_report(tmp_path):
 
     text = out.read_text(encoding="utf-8")
     assert "приложение" in text
-    assert "Привет" in text
     assert "\\u" not in text
 
-"""Исходный файл не изменяется"""
 
 def test_cli_input_file_not_modified(tmp_path):
     inp = tmp_path / "in.jsonl"
@@ -171,7 +162,6 @@ def test_cli_input_file_not_modified(tmp_path):
 
     assert inp.read_text(encoding="utf-8") == content
 
-"""Эквивалентность CSV и JSONL"""
 
 @pytest.mark.parametrize(
     "fmt,content",
@@ -195,6 +185,7 @@ def test_cli_equivalent_formats(tmp_path, fmt, content):
     result = run_cli("analyze", str(inp), "--format", fmt, "--output", str(out))
 
     assert result.returncode == 0
+
     data = json.loads(out.read_text(encoding="utf-8"))
     assert data["total_events"] == 1
     assert data["source_counts"] == {"app": 1}

@@ -24,8 +24,8 @@ timestamp,level,source,message
 
 Каждая строка — JSON. Пустые строки пропускаются.
 
-{"timestamp": "2024-01-01T12:00:00Z", "level": "INFO", "source": "app", "message": "Server started"}
-{"timestamp": "2024-01-01T12:05:00Z", "level": "ERROR", "source": "db", "message": "Connection timeout"}
+{"timestamp": "2026-01-01T12:00:00Z", "level": "INFO", "source": "app", "message": "Server started"}
+{"timestamp": "2026-01-01T12:05:00Z", "level": "ERROR", "source": "db", "message": "Connection timeout"}
 
 
 ## Событие
@@ -72,8 +72,8 @@ python -m streamstats analyze events.jsonl --format jsonl --skip-invalid --outpu
   "level_counts": {"INFO": 1, "ERROR": 1},
   "source_counts": {"app": 1, "db": 1},
   "top_error_sources": [{"source": "db", "count": 1}],
-  "first_timestamp": "2024-01-01 12:00:00+00:00",
-  "last_timestamp": "2024-01-01 12:05:00+00:00",
+  "first_timestamp": "2026-01-01 12:00:00+00:00",
+  "last_timestamp": "2026-01-01 12:05:00+00:00",
   "skipped_invalid": 0
 }
 
